@@ -1,0 +1,8 @@
+.vscode
+
+*.pyc
+
+#in future we will also remove
+# drafts.json
+# processsed.json
+# mock_inbox.json
