@@ -1,4 +1,6 @@
-# Prompt-Driven Email Productivity Agent (Streamlit)
+# Prompt-Driven Email Productivity Agent
+
+## [Preview](https://oceanai-as2-v1.streamlit.app/)
 
 ## Overview
 This project is an Email Productivity Agent with:
