@@ -2,6 +2,7 @@
 
 *.pyc
 
+secrets.toml
 #in future we will also remove
 # drafts.json
 # processsed.json
