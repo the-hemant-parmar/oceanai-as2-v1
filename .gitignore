@@ -2,6 +2,7 @@
 
 *.pyc
 
+credentials.json
 #in future we will also remove
 # drafts.json
 # processsed.json
