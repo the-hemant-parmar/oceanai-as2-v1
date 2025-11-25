@@ -1,29 +1,42 @@
-# Prompt-Driven Email Productivity Agent
 
-## [Preview](https://oceanai-as2-v1.streamlit.app/)
+# Prompt-Driven Email Productivity Agent — Updated
 
-## Overview
-This project is an Email Productivity Agent with:
-- Streamlit frontend (UI)
-- JSON-backed storage for prompts, mock inbox, processed outputs, and drafts
-- LLM integration via Gemini. The app falls back to deterministic simple processors if no API key is provided.
+This project is an updated Streamlit-based Email Productivity Agent.
 
-Features:
-- Load & view mock inbox
-- Edit the "Prompt Brain" (categorization, action extraction, auto-reply)
-- Run ingestion to categorize and extract tasks from emails
-- Chat-like agent to summarize, extract tasks, and draft replies
-- Draft manager to edit/save drafts (never sends emails automatically)
+**Key features**
+- Streamlit UI with Google OAuth (web flow): users can sign in with their Google accounts (read-only Gmail access).
+- Gmail inbox loader fetches each user's latest N emails and saves to `data/mock_inbox.json`.
+- Gemini (Google) integration via `google-generativeai` for LLM tasks (set `GEMINI_API_KEY` in environment).
+- All prompts editable via Prompt Brain UI.
+- Drafts saved locally and never sent automatically.
 
-## Files
-- `app.py` — Streamlit app
-- `backend/` — backend modules (`db.py`, `prompts.py`, `ingestion.py`, `agent.py`, `drafts.py`)
-- `data/` — data files: `mock_inbox.json`, `prompts.json`, `drafts.json`, `processed.json`
-- `requirements.txt`
+**Included assignment file**
+The original assignment PDF uploaded by you is included at: `assets/Assignment - 2.pdf`
 
 ## Setup
-1. Clone or copy files into folder `email_agent/`.
-2. Create a Python venv if desired:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate
+
+1. Place your OAuth client credentials into Streamlit secrets. Create `secrets.toml` or use Streamlit Cloud secrets:
+```
+[general]
+GOOGLE_CLIENT_ID = "<your_client_id>"
+GOOGLE_CLIENT_SECRET = "<your_client_secret>"
+REDIRECT_URI = "http://localhost:8501/"
+```
+
+2. Optional: set `GEMINI_API_KEY` environment variable for LLM features.
+
+3. Install dependencies:
+```
+pip install -r requirements.txt
+```
+
+4. Run:
+```
+streamlit run app.py
+```
+
+## Notes
+- The app uses a web OAuth flow — when users click Sign in with Google they authenticate with their own Google account.
+- The app only requests read-only Gmail scope.
+- The included assignment PDF path inside the project is `assets/Assignment - 2.pdf`.
+

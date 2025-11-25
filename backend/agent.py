@@ -1,9 +1,9 @@
-# backend/agent.py
 import os
 import json
 from typing import Dict, Any
 from google import genai
 
+# Try to import google-generativeai; operate in fallback mode if not present
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 if GEMINI_API_KEY:
@@ -15,11 +15,6 @@ def call_gemini(prompt: str, max_output_tokens: int = 300) -> str:
     if not GEMINI_API_KEY:
         raise RuntimeError("No GEMINI_API_KEY found. Provide one to enable LLM mode.")
 
-    # response = gpt.generate_content(
-    #     prompt,
-    #     generation_config={"max_output_tokens": max_output_tokens}
-    # )
-
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=prompt,
@@ -29,7 +24,6 @@ def call_gemini(prompt: str, max_output_tokens: int = 300) -> str:
     return response.text
 
 
-# ---------------- FALLBACK SIMPLE LOCAL PROCESSORS ----------------
 def simple_categorize(email: Dict[str, Any], categorization_prompt: str) -> str:
     subj = (email.get("subject") or "").lower()
     body = (email.get("body") or "").lower()
@@ -37,7 +31,7 @@ def simple_categorize(email: Dict[str, Any], categorization_prompt: str) -> str:
         return "Newsletter"
     if "sale" in body or "free" in body:
         return "Spam"
-    if any(w in body for w in ["please", "could you", "kindly", "deadline"]):
+    if any(w in body for w in ["please", "could you", "kindly", "deadline", "due"]):
         return "To-Do"
     return "Important"
 
@@ -79,7 +73,9 @@ def run_agent_on_email(email: Dict[str, Any], user_query: str, prompts: Dict[str
         else:
             return {
                 "structured": True,
-                "actions": simple_extract_actions(email, prompts["action_item"]),
+                "actions": simple_extract_actions(
+                    email, prompts.get("action_item", "")
+                ),
             }
 
     # --- Draft Reply ---
@@ -90,7 +86,7 @@ def run_agent_on_email(email: Dict[str, Any], user_query: str, prompts: Dict[str
 
         if GEMINI_API_KEY:
             prompt = (
-                prompts["auto_reply"]
+                prompts.get("auto_reply", "")
                 + f"\nTone: {tone}\n\nEmail Subject: {subject}\nEmail Body:\n{body}"
             )
             txt = call_gemini(prompt, max_output_tokens=400)
@@ -100,9 +96,7 @@ def run_agent_on_email(email: Dict[str, Any], user_query: str, prompts: Dict[str
                 draft = json.loads(txt)
             except:
                 draft = {"subject": "Re: " + subject, "body": txt}
-
             return {"draft": draft, "text": "Draft created", "structured": True}
-
         else:
             draft = {
                 "subject": "Re: " + subject,
@@ -119,5 +113,4 @@ def run_agent_on_email(email: Dict[str, Any], user_query: str, prompts: Dict[str
         )
         txt = call_gemini(prompt)
         return {"text": txt}
-
-    return {"text": "Gemini API key not set. Using offline mode (limited)."}
+    return {"text": "Gemini not configured; offline mode is limited."}
