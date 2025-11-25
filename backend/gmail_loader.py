@@ -15,37 +15,27 @@ REDIRECT_URI = st.secrets["REDIRECT_URI"]
 
 AUTH_URL = "https://accounts.google.com/o/oauth2/auth"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
+
 SCOPES = [
-    "openid",
-    "email",
-    "profile",
     "https://www.googleapis.com/auth/gmail.readonly",
 ]
 
+flow = Flow.from_client_config(
+    client_config={
+        "web": {
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+            "redirect_uris": [REDIRECT_URI],
+            "auth_uri": AUTH_URL,
+            "token_uri": TOKEN_URL,
+        }
+    },
+    scopes=SCOPES,
+)
+
 
 def generate_oauth_url():
-    # params = {
-    #     "client_id": CLIENT_ID,
-    #     "redirect_uri": REDIRECT_URI,
-    #     "response_type": "code",
-    #     "scope": " ".join(SCOPES),
-    #     "access_type": "offline",
-    #     "prompt": "consent",
-    # }
-    flow = Flow.from_client_config(
-        client_config={
-            "web": {
-                "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET,
-                "redirect_uris": [REDIRECT_URI],
-                "auth_uri": AUTH_URL,
-                "token_uri": TOKEN_URL,
-            }
-        },
-        scopes=SCOPES,
-    )
-    authorization_url, state = flow.authorization_url()
-    st.session_state = state
+    authorization_url, _ = flow.authorization_url()
     authorization_url += "&" + urlencode({"redirect_uri": REDIRECT_URI})
     return authorization_url
 
@@ -56,40 +46,25 @@ def handle_oauth_callback(query_params):
 
     if not code:
         raise ValueError("No code in callback.")
-    data = {
-        "code": code,
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "redirect_uri": REDIRECT_URI,
-        "grant_type": "authorization_code",
-    }
-    resp = requests.post(TOKEN_URL, data=data)
 
-    resp.raise_for_status()
-    token_response = resp.json()
+    flow.redirect_uri = REDIRECT_URI
+    flow.fetch_token(code=query_params["code"])
+    creds = flow.credentials
 
-    st.session_state["oauth_token"] = token_response
-    st.session_state["oauth_state"] = "connected"
+    try:
+        st.session_state["oauth_token"] = str(creds.token)
+        st.session_state["oauth_state"] = "connected"
+    except:
+        print("something wrong in session state")
     return
-
-
-def _build_gmail_service_from_token(token_response):
-    creds = Credentials(
-        token_response["access_token"],
-        refresh_token=token_response.get("refresh_token"),
-        token_uri=TOKEN_URL,
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-    )
-    service = build("gmail", "v1", credentials=creds)
-    return service
 
 
 def fetch_inbox_with_token(n=20):
     if "oauth_token" not in st.session_state:
         raise RuntimeError("No oauth token. Please authenticate first.")
-    token = st.session_state["oauth_token"]
-    service = _build_gmail_service_from_token(token)
+
+    service = build("gmail", "v1", credentials=flow.credentials)
+    print("serivicing is done ")
     results = service.users().messages().list(userId="me", maxResults=n).execute()
     messages = results.get("messages", [])
     emails = []

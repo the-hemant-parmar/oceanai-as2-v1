@@ -59,7 +59,9 @@ if page == "Inbox Loader":
         try:
             handle_oauth_callback(query_params)
             st.success("Authenticated successfully. You can now fetch emails.")
+            st.query_params.clear()
         except Exception as e:
+            print(e)
             st.error(f"Authentication failed: {e}")
 
     if "oauth_state" not in st.session_state:
@@ -130,11 +132,9 @@ elif page == "Email Agent":
     if not inbox:
         st.info("No emails loaded. Use Inbox Loader to upload or connect Gmail.")
     else:
-        ids = [str(e.get("id", idx)) for idx, e in enumerate(inbox)]
-        selected = st.sidebar.selectbox("Select email", options=ids)
-        email = next(
-            (e for e in inbox if str(e.get("id", "")) == selected), inbox[int(selected)]
-        )
+        subjects = [e["subject"] for e in inbox]
+        selected = st.sidebar.selectbox("Select email", options=subjects)
+        email = next(e for e in inbox if e["subject"] == selected)
         st.subheader(f"From: {email.get('sender')}  |  Subject: {email.get('subject')}")
         st.write("**Timestamp:**", email.get("timestamp"))
         st.markdown("---")

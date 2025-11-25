@@ -1,1 +1,106 @@
-{}
+{
+  "19abc26465bfa2cd": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abbdd2af54b653": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abbd31a8c84d66": {
+    "category": "Important",
+    "actions": []
+  },
+  "19abbb8e989791b2": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abb9ee8c2b9322": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abb83dffad72e7": {
+    "category": "Newsletter",
+    "actions": [
+      {
+        "task": "please promptly notify the sender by reply email and delete the original",
+        "deadline": "",
+        "assignee": ""
+      }
+    ]
+  },
+  "19abb77c3a615fb9": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abb667ac11b0d5": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abb4a90117bc14": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abb428335a6470": {
+    "category": "Newsletter",
+    "actions": [
+      {
+        "task": "Please do not try it and spoil your future and that of everyone.",
+        "deadline": "",
+        "assignee": ""
+      }
+    ]
+  },
+  "19abb4128f743b5a": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abb0d9518175c3": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abb078cad3562a": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abb063ddda3689": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abb05bb27d6a8e": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abaf03662279c3": {
+    "category": "Spam",
+    "actions": [
+      {
+        "task": "Please do it now. Once more if needed",
+        "deadline": "",
+        "assignee": ""
+      }
+    ]
+  },
+  "19abaec6fa1502c6": {
+    "category": "Important",
+    "actions": []
+  },
+  "19abae8ca4fb9662": {
+    "category": "Important",
+    "actions": []
+  },
+  "19abadd3438eecc2": {
+    "category": "Newsletter",
+    "actions": []
+  },
+  "19abad91f69a086c": {
+    "category": "Newsletter",
+    "actions": [
+      {
+        "task": "please promptly notify the sender by reply email and delete the original",
+        "deadline": "",
+        "assignee": ""
+      }
+    ]
+  }
+}
