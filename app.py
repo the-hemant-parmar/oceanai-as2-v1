@@ -12,7 +12,10 @@ from backend.gmail_loader import (
     generate_oauth_url,
     handle_oauth_callback,
     fetch_inbox_with_token,
+    create_gmail_draft,
 )
+from backend.mongo_db import get_db
+
 
 DATA_DIR = Path("data")
 DATA_DIR.mkdir(exist_ok=True)
@@ -52,6 +55,37 @@ if page == "Inbox Loader":
 
     st.markdown("---")
     st.subheader("Sign in with Google (Gmail)")
+
+    # Show user's inbox from Mongo
+    if "user_email" in st.session_state:
+        db = get_db()
+        inbox_coll = db.inboxes
+        user_email = st.session_state["user_email"]
+        # optionally apply processed tags from processed.json or from processed collection if you add one
+        cursor = (
+            inbox_coll.find({"user_email": user_email})
+            .sort("fetched_at", -1)
+            .limit(200)
+        )
+        emails = list(cursor)
+        # display as dataframe
+        import pandas as pd
+
+        df = pd.DataFrame(
+            [
+                {
+                    "email_id": e["email_id"],
+                    "sender": e["sender"],
+                    "subject": e["subject"],
+                    "timestamp": e["timestamp"],
+                }
+                for e in emails
+            ]
+        )
+        st.dataframe(df)
+    else:
+        st.info("Please sign in with Google to view your inbox.")
+
     # OAuth link and callback handling
     query_params = st.query_params
     if "code" in query_params:
@@ -164,27 +198,26 @@ elif page == "Email Agent":
 
 # Draft Manager
 elif page == "Draft Manager":
-    st.title("Draft Manager")
-    drafts = db.load_json(DATA_DIR / "drafts.json", [])
-    if not drafts:
-        st.info("No drafts saved yet.")
+
+    if "user_email" not in st.session_state:
+        st.info("Please sign in.")
     else:
-        for i, d in enumerate(drafts):
-            with st.expander(
-                f"{i+1}. {d.get('subject','(no subject)')} — {d.get('meta',{}).get('email_id','-')}"
-            ):
-                new_sub = st.text_input(f"subject_{i}", value=d.get("subject", ""))
-                new_body = st.text_area(
-                    f"body_{i}", value=d.get("body", ""), height=180
-                )
-                if st.button(f"Save changes #{i}"):
-                    d["subject"] = new_sub
-                    d["body"] = new_body
-                    db.save_json(DATA_DIR / "drafts.json", drafts)
-                    st.success("Saved.")
-        if st.button("Clear all drafts"):
-            db.save_json(DATA_DIR / "drafts.json", [])
-            refresh()
+        db = get_db()
+        drafts_coll = db.drafts
+        user = st.session_state["user_email"]
+        docs = list(drafts_coll.find({"user_email": user}).sort("created_at", -1))
+        for d in docs:
+            with st.expander(f"{d.get('subject')}"):
+                st.write(d.get("body"))
+                if st.button(f"Push this draft to Gmail ({d.get('_id')})"):
+                    # use create_gmail_draft to create draft in Gmail and update DB
+                    res = create_gmail_draft(d.get("subject"), d.get("body"))
+                    drafts_coll.update_one(
+                        {"_id": d["_id"]},
+                        {"$set": {"gmail_draft_id": res["gmail_draft_id"]}},
+                    )
+                    st.success("Draft pushed to Gmail.")
+
 
 # About
 elif page == "About":
