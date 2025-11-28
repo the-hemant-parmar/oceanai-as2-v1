@@ -1,5 +1,7 @@
 from pathlib import Path
-from . import db
+import streamlit as st
+import time
+from backend.mongo_db import get_db
 
 DATA_DIR = Path("data")
 PROMPT_FILE = DATA_DIR / "prompts.json"
@@ -11,17 +13,29 @@ DEFAULT_PROMPTS = {
     "tone_instructions": "If user specifies a tone (friendly/professional/concise), adapt the reply accordingly.",
 }
 
+db = get_db()
+
+
+def save_prompts(new_prompts):
+    db.prompts.insert_one(
+        {
+            "user_email": st.session_state["user_email"],
+            "timestamp": int(time.time()),
+            "prompt_brain": new_prompts,
+        }
+    )
+
 
 def load_prompts():
-    p = db.load_json(PROMPT_FILE, default=None)
-    if not p:
-        save_prompts(DEFAULT_PROMPTS)
+    prompt_data = db.prompts.find(
+        {"user_email": st.session_state["user_email"]}
+    ).to_list()
+    if prompt_data:
+        prompts = dict(prompt_data[0])["prompt_brain"]
+        return prompts
+    else:
+        reset_prompts()
         return DEFAULT_PROMPTS
-    return p
-
-
-def save_prompts(prompts: dict):
-    db.save_json(PROMPT_FILE, prompts)
 
 
 def reset_prompts():

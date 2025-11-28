@@ -1,4 +1,3 @@
-# backend/drafts.py (updated)
 from .mongo_db import get_db
 import streamlit as st
 from typing import Dict, Any
@@ -15,7 +14,6 @@ def save_draft_to_db(draft: Dict[str, Any], push_to_gmail: bool = False):
 
     user_email = st.session_state["user_email"]
     db = get_db()
-    drafts_coll = db.drafts
 
     doc = {
         "user_email": user_email,
@@ -26,7 +24,7 @@ def save_draft_to_db(draft: Dict[str, Any], push_to_gmail: bool = False):
     }
 
     # Insert to Mongo
-    res = drafts_coll.insert_one(doc)
+    res = db.drafts.insert_one(doc)
     doc["_id"] = str(res.inserted_id)
 
     # Optionally create a Gmail draft and record the gmail_draft_id
@@ -35,7 +33,7 @@ def save_draft_to_db(draft: Dict[str, Any], push_to_gmail: bool = False):
             doc["subject"], doc["body"], to_addr=doc["meta"].get("to")
         )
         # update doc with gmail_draft_id
-        drafts_coll.update_one(
+        db.drafts.update_one(
             {"_id": res.inserted_id},
             {"$set": {"gmail_draft_id": res2["gmail_draft_id"]}},
         )
